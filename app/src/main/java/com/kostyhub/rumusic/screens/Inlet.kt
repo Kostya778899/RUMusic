@@ -20,22 +20,22 @@ import kotlinx.coroutines.flow.StateFlow
 object Inlet {
     class Model(viewModel: ViewModel)
 
-    sealed class InletUiState {
-        object Empty                                         : InletUiState()
-        object Loading                                       : InletUiState()
-        class  Login(val errors: List<String> = listOf())    : InletUiState()
-        class  Register(val errors: List<String> = listOf()) : InletUiState()
-        class  Error(val message: String)                    : InletUiState()
+    sealed class UiState {
+        object Empty                                         : UiState()
+        object Loading                                       : UiState()
+        class  Login(val errors: List<String> = listOf())    : UiState()
+        class  Register(val errors: List<String> = listOf()) : UiState()
+        class  Error(val message: String)                    : UiState()
     }
 
     class ViewModel {
-        private val _uiState = MutableStateFlow<InletUiState>(InletUiState.Empty)
-        val uiState: StateFlow<InletUiState> = _uiState
+        private val _uiState = MutableStateFlow<UiState>(UiState.Empty)
+        val uiState: StateFlow<UiState> = _uiState
 
         init { showLoginPage() }
 
-        fun showLoginPage() { _uiState.value = InletUiState.Login() }
-        fun showRegisterPage() { _uiState.value = InletUiState.Register() }
+        fun showLoginPage() { _uiState.value = UiState.Login() }
+        fun showRegisterPage() { _uiState.value = UiState.Register() }
 
         fun login(username: String, password: String) { }
         fun register(
@@ -50,13 +50,12 @@ object Inlet {
     @Composable
     fun View(viewModel: ViewModel) {
         when (val state = viewModel.uiState.collectAsState().value) {
-            is InletUiState.Empty -> Text("NULL")
-            is InletUiState.Loading -> Text("Load...")
-            is InletUiState.Login -> NamedContainer("Login") {
+            is UiState.Empty -> Text("NULL")
+            is UiState.Loading -> Text("Load...")
+            is UiState.Login -> NamedContainer("Login") {
                 var username by remember { mutableStateOf(TextFieldValue("")) }
                 var password by remember { mutableStateOf(TextFieldValue("")) }
 
-                //CTextLabel("Login")
                 Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     TextField(username, { username = it }, "Username")
                     TextField(password, { password = it }, "Password")
@@ -70,16 +69,13 @@ object Inlet {
                     if (state.errors.isNotEmpty()) state.errors.forEach { Text(it) }
                 }
             }
-            is InletUiState.Register -> NamedContainer("Register") {
+            is UiState.Register -> NamedContainer("Register") {
                 val keyboardState by keyboardAsState()
                 var fullName by remember { mutableStateOf(TextFieldValue("")) }
                 var email by remember { mutableStateOf(TextFieldValue("")) }
                 var phone by remember { mutableStateOf(TextFieldValue("")) }
                 var password by remember { mutableStateOf(TextFieldValue("")) }
                 var confirmPassword by remember { mutableStateOf(TextFieldValue("")) }
-
-                /*if (keyboardState == KeyboardState.Closed) CTextLabel(labelText)
-                else CTextLabel(labelText, modifier = Modifier.fillMaxWidth(), fontSize = 20.sp)*/
 
                 Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     TextField(fullName, { fullName = it }, "Full Name")
@@ -112,21 +108,24 @@ object Inlet {
                     if (state.errors.isNotEmpty()) state.errors.forEach { Text(it) }
                 }
             }
-            is InletUiState.Error -> Text("Error: ${state.message}")
+            is UiState.Error -> Text("Error: ${state.message}")
         }
     }
 }
 
 //region Previews
-/*@Preview @Composable
+/*@Preview
+@Composable
 private fun DefaultPreview() { }*/
-@Preview @Composable
+@Preview
+@Composable
 private fun LoginPreview() {
     val viewModel by remember { mutableStateOf(Inlet.ViewModel()) }
     val model by remember { mutableStateOf(Inlet.Model(viewModel)) }
     Inlet.View(viewModel)
 }
-@Preview @Composable
+@Preview
+@Composable
 private fun RegisterPreview() {
     val viewModel by remember { mutableStateOf(Inlet.ViewModel()) }
     val model by remember { mutableStateOf(Inlet.Model(viewModel)) }
